@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Grabar Pantalla</title>
+</head>
+<body>
+  <button onclick="startRecording()">Iniciar Grabación</button>
+  <button onclick="stopRecording()">Detener Grabación</button>
+  <video id="recordedVideo" controls></video>
+
+  <script>
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
+          const recordedVideo = document.getElementById('recordedVideo');
+          recordedVideo.src = URL.createObjectURL(recordedBlob);
+        };
+
+        recordedChunks = [];
+        mediaRecorder.start();
+      } catch (error) {
+        console.error('Error al iniciar la grabación:', error);
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+    }
+  </script>
+</body>
+</html>
